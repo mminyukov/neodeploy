@@ -1,0 +1,4 @@
+settings.json
+appsettings.json
+**/__pycache__/
+*.zip
