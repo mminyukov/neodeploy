@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
-import argparse
 import json
 import os
-'''
-parser = argparse.ArgumentParser(description='appsettings.json editing script')
-parser.add_argument('-p','--filePath', help="Path to appsettings.json file without / at the end",required=True)
-parser.add_argument('-cstrdb','--connStringDb', help="Database connection string",required=False)
-parser.add_argument('-cstrusr','--connStringUser', help="Database connection string",required=False)
-parser.add_argument('-cstrsch','--connStringScheduler', help="Scheduler connection string",required=False)
-parser.add_argument('-cstrschhgf','--connStringSchedulerHangfire', help="Scheduler Hangfire connection string",required=False)
-parser.add_argument('-ssurl','--SSURL', help="url of SS",required=False)
-parser.add_argument('-cstrcci','--connStringCCI', help="CCI connection string",required=False)
-args = parser.parse_args()
-'''
+
+def gisrao(jsonMod,connstringapp):
+  if 'ConnectionString' in jsonMod['Data']['PostgreSql']:
+    jsonMod['Data']['PostgreSql']['ConnectionString'] = connstringapp[0]
+  for tileset in jsonMod['tilesets']:
+    if tileset['name'] == 'saintspbWiki15':
+      tileset['source'] = connstringapp[1]
+    if tileset['name'] == 'saintspb':
+      tileset['source'] = connstringapp[2]
+    if tileset['name'] == 'saintpgoolge':
+      tileset['source'] = connstringapp[3]
+    if tileset['name'] == 'route':
+      tileset['source'] = connstringapp[4]
+  return jsonMod
 
 def read_json(path,file_name):
   with open(os.path.join(path,file_name), "r") as f:
@@ -23,12 +25,13 @@ def write_json(path,jsonMod,file_name):
   with open(os.path.join(path,file_name), "w") as f:
     json.dump(jsonMod, f, indent=2, sort_keys=False)
 
-
-def appsettings(path,**connstrings):
+def appsettings(project,path,*connstrings):
+  print("INFO: Set connection strings")
   jsonMod = read_json(path,'appsettings.json')
-  if 'UserConnectionString' in jsonMod['Data']['PostgreSql']:
-    jsonMod['Data']['PostgreSql']['UserConnectionString'] = connstrings.get('stringuser')
-
+  if project == 'gis-rao':
+    gisrao(jsonMod,connstrings)
+  else:
+    print("here")
   write_json(path,jsonMod,'appsettings.json')
 
 '''
