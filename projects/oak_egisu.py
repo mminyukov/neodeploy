@@ -3,7 +3,6 @@ from service import appsettingsedit as app
 from service import getsettings as g
 from service import manage as m
 from service import create_unit as c
-from projects import cce
 
 def install(project_name):
   #--------------------------------------------------------------------------------------------------
@@ -15,7 +14,7 @@ def install(project_name):
   # main service
   stand_name = config_dict.get('stand_name')
   target_directory = os.path.join(config_main.get('prefix_directory'),project_name,stand_name)
-  target_directory_site = os.path.join(target_directory,'Site')
+  target_directory_site = os.path.join(target_directory,'Egisu')
   target_service_name = os.path.join(target_directory_site,config_dict.get('target_service_name'))
   site_user_name = 'www-data'
   site_service_name = '{}.{}.service'.format(project_name,stand_name)
@@ -25,13 +24,6 @@ def install(project_name):
   target_directory_dbupdater = os.path.join(target_directory,'DbUpdater')
   dbupdater_zip_file = config_dict.get('dbupdater_zip_name')
 
-  # scheduler
-  scheduler_zip_file = config_dict.get('scheduler_zip_name')
-  target_directory_scheduler = os.path.join(target_directory,'Scheduler')
-  target_scheduler_name = os.path.join(target_directory_scheduler,config_dict.get('target_scheduler_name'))
-  scheduler_service_name = '{}.{}.shceduler.service'.format(project_name,stand_name)
-  scheduler_service_file = os.path.join('/etc/systemd/system/',scheduler_service_name)
-  scheduler_run_directory = '/var/lib/Scheduler'
   #--------------------------------------------------------------------------------------------------
 
   m.check_file(zip_file)
@@ -45,7 +37,7 @@ def install(project_name):
     shutil.rmtree(target_directory)
 
   m.extract_all_with_permission(zip_file,target_directory_site)
-  app.oak(target_directory_site,config_dict.get('connection_string_db'),config_dict.get('connection_string_user'),config_dict.get('connection_string_hangfire'),config_dict.get('connection_string_scheduler'),config_dict.get('connection_string_cci'),config_dict.get('ss_url'))
+  app.oak_egisu(target_directory_site,config_dict.get('connection_string_db'))
   m.setpermissions(target_directory_site,'www-data','www-data')
 
   c.unit(project_name,stand_name,target_directory_site,target_service_name,site_user_name,site_run_directory,config_dict.get('port_site'),site_service_file)
@@ -55,26 +47,12 @@ def install(project_name):
 
   if config_dict.get('recreate_db') == 'true':
     m.extract_all_with_permission(dbupdater_zip_file,target_directory_dbupdater)
-    app.oak(target_directory_dbupdater,config_dict.get('connection_string_db'))
+    app.oak_egisu(target_directory_dbupdater,config_dict.get('connection_string_db'))
     print("WARN: Recreate DB for CCE")
-    os.chmod(os.path.join(target_directory_dbupdater,'Neolant.OAK.DbUpdater'), 0o0777)
-    m.exec(target_directory_dbupdater,'./Neolant.OAK.DbUpdater -r -f')
+    os.chmod(os.path.join(target_directory_dbupdater,'Neolant.OAK.EgisuSS.DbUpdater'), 0o0777)
+    m.exec(target_directory_dbupdater,'./Neolant.OAK.EgisuSS.DbUpdater')
   else:
     print("INFO: Recreate DB is False")
-
-  if config_dict.get('use_scheduler') == 'true':
-    if os.path.isfile(scheduler_service_file):
-      m.service('stop',scheduler_service_name)
-      m.service('disable',scheduler_service_name)
-    m.extract_all_with_permission(scheduler_zip_file,target_directory_scheduler)
-    c.unit(project_name,stand_name,target_directory_scheduler,target_scheduler_name,site_user_name,scheduler_run_directory,config_dict.get('port_scheduler'),scheduler_service_file)
-    os.chmod(target_scheduler_name, 0o0777)
-    m.service('enable',scheduler_service_name)
-    m.service('start',scheduler_service_name)
-
-  if config_dict.get('install_cce') == 'true':
-    print("INFO: Start install CCE")
-    cce.install('cce')
 
   os.chmod(target_service_name, 0o0777)
   m.service('enable',site_service_name)

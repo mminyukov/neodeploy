@@ -3,13 +3,17 @@ import json
 import os
 
 def read_json(path,file_name):
-  print("INFO: Read file {}".format(file_name))
+  print("INFO: Read file {}".format(os.path.join(path,file_name)))
+  jsonMod = ""
   with open(os.path.join(path,file_name), "r") as f:
-    jsonMod = json.load(f)
-    return jsonMod
+    lines = f.readlines()
+    for line in lines:
+      if line.strip().strip("\n")[0:2] != "//":
+        jsonMod = jsonMod + line
+  return json.loads(jsonMod)
 
 def write_json(path,jsonMod,file_name):
-  print("INFO: Write changes in file {}".format(file_name))
+  print("INFO: Write changes in file {}".format(os.path.join(path,file_name)))
   with open(os.path.join(path,file_name), "w") as f:
     json.dump(jsonMod, f, indent=2, sort_keys=False)
 
@@ -57,8 +61,24 @@ def oak(path,*connstrings):
       jsonMod['cci']['connection_string'] = connstrings[4]
   write_json(path,jsonMod,'appsettings.json')
 
-  if connstrings[5] != None:
+  if len(connstrings) > 1 and connstrings[5] != None:
     jsonMod = read_json(path,'settings.json')
     if 'BaseUrl' in jsonMod['SS']:
         jsonMod['SS']['BaseUrl'] = connstrings[5]
     write_json(path,jsonMod,'settings.json')
+
+def oak_egisu(path,*connstrings):
+  jsonMod = read_json(path,'appsettings.json')
+  if 'ConnectionString' in jsonMod['Data']['PostgreSql']:
+    jsonMod['Data']['PostgreSql']['ConnectionString'] = connstrings[0]
+  if 'DefaultConnectionString' in jsonMod['Data']['PostgreSql']:
+    jsonMod['Data']['PostgreSql']['DefaultConnectionString'] = connstrings[1]
+  write_json(path,jsonMod,'appsettings.json')
+
+def sguk(path,*connstrings):
+  jsonMod = read_json(path,'appsettings.json')
+  if 'ConnectionString' in jsonMod['Data']['PostgreSql']:
+    jsonMod['Data']['PostgreSql']['ConnectionString'] = connstrings[0]
+  if 'UserConnectionString' in jsonMod['Data']['PostgreSql']:
+    jsonMod['Data']['PostgreSql']['UserConnectionString'] = connstrings[1]
+  write_json(path,jsonMod,'appsettings.json')

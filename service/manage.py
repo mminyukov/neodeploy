@@ -13,8 +13,10 @@ def service(operation,service):
 def exec(workdir,command):
   try:
     print('WARN: Try to run command: {}'.format(command))
+    current_dir = os.getcwd()
     os.chdir(workdir)
     subprocess.call(command, shell=True)
+    os.chdir(current_dir)
   except Exception as e:
     print('ERROR: %s' % str(e))
 

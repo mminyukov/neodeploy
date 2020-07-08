@@ -1,6 +1,6 @@
 import os
 import argparse
-from projects import gisrao,cce,oak
+from projects import gisrao,cce,oak,oak_egisu,sguk
 
 
 if __name__ == "__main__":
@@ -9,10 +9,14 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   if args.project == 'gis-rao':
-    gisrao.install('gis-rao')
+    gisrao.install(args.project)
   elif args.project == 'oak':
-    oak.install('oak')
+    oak.install(args.project)
   elif args.project == 'cce':
-    cce.install('cce')
+    cce.install(args.project)
+  elif args.project == 'oak-egisu':
+    oak_egisu.install(args.project)
+  elif args.project == 'sguk':
+    sguk.install(args.project)
   else:
     print("ERROR: Project not found")
