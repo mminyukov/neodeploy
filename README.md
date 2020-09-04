@@ -7,5 +7,5 @@
 
 Для запуска обязателен один параметр (наименование проекта), например:
 ```bash
-python neodeploy.py cce
+python neodeploy.py -p cce
 ```
